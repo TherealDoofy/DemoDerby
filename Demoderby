@@ -1,0 +1,42 @@
+// Doofy's Demolition derby
+// Define the arena size and location
+'''_demolitionArenaSize = 300; // in meters
+_demolitionArenaCenter = getMarkerPos "arena_center";
+
+// Define the number of vehicles and their types
+_demolitionVehicleTypes = ["B_G_Offroad_01_armed_F", "I_G_Offroad_01_armed_F", "O_G_Offroad_01_armed_F"];
+_demolitionNumVehicles = 10;
+
+// Spawn the vehicles within the arena
+for "_i" from 0 to (_demolitionNumVehicles - 1) do {
+    _spawnPos = [_demolitionArenaCenter, _demolitionArenaSize, _demolitionArenaSize, 0] call BIS_fnc_findSafePos;
+    _vehicleType = selectRandom _demolitionVehicleTypes;
+    _vehicle = createVehicle [_vehicleType, _spawnPos, [], 0, "NONE"];
+};
+
+// Define the rules of the event
+_demolitionDamageThreshold = 0.2; // The vehicle is out of the event when the damage reaches 20% or more
+_demolitionTimeLimit = 600; // The event ends after 10 minutes
+
+// Start the event timer
+_demolitionTimer = _demolitionTimeLimit;
+while {_demolitionTimer > 0} do {
+    sleep 1;
+    _demolitionTimer = _demolitionTimer - 1;
+};
+
+// End the event and determine the winner
+_winner = "Nobody";
+_winnerDamage = 1;
+{ 
+    if (damage _x < _demolitionDamageThreshold && damage _x < _winnerDamage) then {
+        _winner = format ["%1 (%2)", typeOf _x, getText (configFile >> "CfgVehicles" >> typeOf _x >> "displayName")];
+        _winnerDamage = damage _x;
+    };
+} forEach vehicles;
+
+hint format ["The winner of the demolition derby is %1 with %2 damage!", _winner, round (_winnerDamage * 100)];
+
+// Clean up the arena and end the mission
+{ deleteVehicle _x; } forEach vehicles;
+endMission "END1";'''
